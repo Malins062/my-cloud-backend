@@ -44,6 +44,9 @@ INSTALLED_APPS += [
     'drf_spectacular',
 ]
 
+AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = ('users.backends.AuthBackend', )
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -160,9 +163,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
 MEDIA_URL = env.str('MEDIA_URL', 'media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, MEDIA_URL)
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 ################################
 # DRF SPECTACULAR SETTINGS
