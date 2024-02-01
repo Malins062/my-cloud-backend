@@ -6,7 +6,9 @@ from storage.urls import urlpatterns as storage_urls
 
 app_name = 'api'
 
-urlpatterns = []
+urlpatterns = [
+    path('auth/', include('rest_framework.urls', namespace='rest_framework')),
+]
 
 urlpatterns += spectacular_doc_urls
 urlpatterns += storage_urls
