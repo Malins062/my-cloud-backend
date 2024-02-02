@@ -1,91 +1,34 @@
-import json
-from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.http import JsonResponse
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+import pdb
+
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
+from rest_framework import generics, status
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
+
+from config.settings import SPECTACULAR_SETTINGS
+# from common.views.mixins import ListViewSet
+# from users.permissions import IsNotCorporate
+from users.serializers import auth as user_s
+
+User = get_user_model()
 
 
-@ensure_csrf_cookie
-def get_csrf_token(request):
-    return JsonResponse({
-        "message": "csrf cookie set"
-    })
+@extend_schema_view(
+    post=extend_schema(
+        summary='Регистрация пользователя',
+        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['AUTH']],
+        description='Регистрация и создание нового пользователя с пользовательскими правами',
+    ),
+)
+class RegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = user_s.RegistrationSerializer
 
-
-@api_view(['POST',])
-@permission_classes((AllowAny,))
-def login_view(request):
-    """
-    POST API for login
-    """
-    data = json.loads(request.body)
-    username = data.get('username')
-    password = data.get('password')
-    if username is None:
-        return JsonResponse({
-            "errors": {
-                "detail": "Please enter username"
-            }
-        }, status=400)
-    elif password is None:
-        return JsonResponse({
-            "errors": {
-                "detail": "Please enter password"
-            }
-        }, status=400)
-
-    # authentication user
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        login(request, user)
-        return JsonResponse({"success": "User has been logged in"})
-    return JsonResponse(
-        {"errors": "Invalid credentials"},
-        status=400,
-    )
-
-# @require_POST
-# def login_view(request):
-#     data = json.loads(request.body)
-#     username = data.get('username')
-#     password = data.get('password')
-#
-#     if username is None or password is None:
-#         return JsonResponse({
-#             "message": "Please enter both email and password"
-#         }, status=400)
-#
-#     user = authenticate(username=username, password=password)
-#
-#     if user is not None:
-#         login(request, user)
-#
-#         return JsonResponse({
-#             "message": "success",
-#         })
-#
-#     return JsonResponse(
-#         {
-#             "message": "invalid credentials"
-#         }, status=400
-#     )
-#
-
-@require_POST
-def logout_view(request):
-    logout(request)
-
-    return JsonResponse({
-        "message": 'logout',
-    })
-
-
-def me_view(request):
-    data = request.user
-
-    return JsonResponse({
-        "username": data.username,
-        "isAdmin": data.is_staff,
-    })
