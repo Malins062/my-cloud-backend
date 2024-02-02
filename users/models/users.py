@@ -11,13 +11,13 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=30, blank=False, null=False,
-        help_text='Имя пользователя. Обязательное поле. Не более 30 символов.',
+        max_length=60, blank=False, null=False,
+        help_text='Имя пользователя. Обязательное поле. Не более 60 символов.',
     )
     last_name = models.CharField(
-        verbose_name='Имя',
-        max_length=60, blank=False, null=False,
-        help_text='Фамилия пользователя. Обязательное поле. Не более 60 символов.',
+        verbose_name='Фамилия',
+        max_length=120, blank=False, null=False,
+        help_text='Фамилия пользователя. Обязательное поле. Не более 120 символов.',
     )
 
     USERNAME_FIELD = 'username'
