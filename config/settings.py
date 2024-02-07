@@ -27,6 +27,8 @@ INSTALLED_APPS = [
 # Additional packages
 INSTALLED_APPS += [
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
     'django_filters',
     'corsheaders',
     'debug_toolbar',
@@ -112,7 +114,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PARSES_CLASSES': [
         'rest_framework.parses.JSONParses',
@@ -180,7 +182,9 @@ SPECTACULAR_SETTINGS = {
 
     'SERVE_AUTHENTICATION': [
         # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
 
     'SWAGGER_UI_SETTINGS': {
@@ -194,8 +198,7 @@ SPECTACULAR_SETTINGS = {
     'SORT_OPERATIONS': False,
 
     'TITLES_TAGS': {
-        'STORAGE': 'Хранилище',
-        'AUTH': 'Аутентификация и авторизация',
-        'PROFILE': 'Пользователь'
+        'ADMIN': 'Административный интерфейс',
+        'STORAGE': 'Файловое хранилище',
     },
 }
