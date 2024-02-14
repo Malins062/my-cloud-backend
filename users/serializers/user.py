@@ -30,14 +30,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
     def validate_username(self, value):
-        if re.match('^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
+        if not re.match('^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
             raise ParseError(
-                {'error': f'Формат логина: только латинские буквы и цифры, первый символ - буква, длина от 4 до 20 '
-                          f'символов'}
+                dict(
+                    username=[f'Формат логина: только латинские буквы и цифры, первый символ - буква, длина от 4 до 20 '
+                              f'символов'])
             )
         elif User.objects.filter(username=value).exists():
             raise ParseError(
-                {'error': f'Пользователь с логином: {value} - уже зарегистрирован.'}
+                dict(username=[f'Пользователь с логином: {value} - уже зарегистрирован.'])
             )
         return value
 
@@ -45,12 +46,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
         email = value.lower()
         if User.objects.filter(email=email).exists():
             raise ParseError(
-                {'error': f'Пользователь с адресом электронной почты: {email} - уже зарегистрирован.'}
+                dict(email=[f'Пользователь с адресом электронной почты: {email} - уже зарегистрирован.'])
             )
         return email
 
     def validate_password(self, value):
-        validate_password(value)
+        if not re.match('(?=^.{6,}$)(?=.*\d+)(?=.*[\W_]+)(?![.\n])(?=.*[A-ZА-Я]+)(?=.*[a-z]*).*$', value):
+            raise ParseError(
+                dict(
+                    password=[f'Формат пароля: не менее 6 символов, как минимум одна заглавная буква, одна цифра и один'
+                              f'спецсимвол'])
+            )
         return value
 
     def create(self, validated_data):
