@@ -1,18 +1,23 @@
+import re
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError
 
-
 User = get_user_model()
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True, allow_blank=True, allow_null=True)
+    username = serializers.CharField(required=True,
+                                     max_length=20,
+                                     min_length=4)
     email = serializers.EmailField(required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True,
+                                     write_only=True,
+                                     min_length=6)
 
     class Meta:
         model = User
@@ -24,17 +29,27 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'password',
         )
 
-    @staticmethod
-    def validate_email(value):
+    def validate_username(self, value):
+        if re.match('^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
+            raise ParseError(
+                {'error': f'Формат логина: только латинские буквы и цифры, первый символ - буква, длина от 4 до 20 '
+                          f'символов'}
+            )
+        elif User.objects.filter(username=value).exists():
+            raise ParseError(
+                {'error': f'Пользователь с логином: {value} - уже зарегистрирован.'}
+            )
+        return value
+
+    def validate_email(self, value):
         email = value.lower()
         if User.objects.filter(email=email).exists():
             raise ParseError(
-                {'error': [f'Пользователь с адресом электронной почты: {email} - уже зарегистрирован.']}
+                {'error': f'Пользователь с адресом электронной почты: {email} - уже зарегистрирован.'}
             )
         return email
 
-    @staticmethod
-    def validate_password(value):
+    def validate_password(self, value):
         validate_password(value)
         return value
 
@@ -44,7 +59,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class ProfileListSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = [
@@ -57,7 +71,6 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = [
