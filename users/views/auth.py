@@ -1,5 +1,3 @@
-import pdb
-
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
@@ -7,7 +5,6 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSetMixin
 
 from config.settings import SPECTACULAR_SETTINGS
 
