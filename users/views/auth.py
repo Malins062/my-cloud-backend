@@ -33,6 +33,7 @@ class LoginView(ObtainAuthToken):
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated, )
 
+    @extend_schema(request=None, responses={200: {"type": "string"}})
     def post(self, request):
         try:
             request.user.auth_token.delete()
