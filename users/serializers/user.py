@@ -26,8 +26,8 @@ class RegistrationSerializer(UserMixinSerializer):
         if not re.match(r'(?=^.{6,}$)(?=.*\d+)(?=.*[\W_]+)(?![.\n])(?=.*[A-ZА-Я]+)(?=.*[a-z]*).*$', value):
             raise ParseError(
                 dict(
-                    password=[f'Формат пароля: не менее 6 символов, как минимум одна заглавная буква, одна цифра и один'
-                              f'спецсимвол'])
+                    password=[f'Password format: at least 6 characters, at least one capital letter, one digit and '
+                              f'one special character'])
             )
         return value
 
@@ -63,7 +63,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         password = attrs.pop('old_password') if 'old_password' in attrs else None
         if not user.check_password(password):
             raise ParseError(
-                {'password': ['Проверьте правильность текущего пароля.']}
+                {'password': ['Check that the current password is correct.']}
             )
         return attrs
 
