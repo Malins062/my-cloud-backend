@@ -38,7 +38,8 @@ class RegistrationSerializer(UserMixinSerializer):
 
 class ProfileListSerializer(UserMixinSerializer):
     class Meta(UserMixinSerializer.Meta):
-        fields = UserMixinSerializer.Meta.fields + ('id', 'data_joined', )
+        fields = UserMixinSerializer.Meta.fields + ('id',
+                                                    'date_joined', )
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
