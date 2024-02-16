@@ -9,15 +9,11 @@ User = get_user_model()
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True,
-                                     max_length=20,
-                                     min_length=4)
+    username = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    password = serializers.CharField(required=True,
-                                     write_only=True,
-                                     min_length=6)
+    password = serializers.CharField(required=True, write_only=True)
 
     class Meta:
         model = User
@@ -29,7 +25,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'password',
         )
 
-    def validate_username(self, value):
+    @staticmethod
+    def validate_username(value):
         if not re.match('^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
             raise ParseError(
                 dict(
@@ -42,7 +39,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_email(self, value):
+    @staticmethod
+    def validate_email(value):
         email = value.lower()
         if User.objects.filter(email=email).exists():
             raise ParseError(
@@ -50,7 +48,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
             )
         return email
 
-    def validate_password(self, value):
+    @staticmethod
+    def validate_password(value):
         if not re.match('(?=^.{6,}$)(?=.*\d+)(?=.*[\W_]+)(?![.\n])(?=.*[A-ZА-Я]+)(?=.*[a-z]*).*$', value):
             raise ParseError(
                 dict(
@@ -68,6 +67,7 @@ class ProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'id',
             'username',
             'email',
             'first_name',

@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSetMixin
 
 from config.settings import SPECTACULAR_SETTINGS
 from users.serializers import user as user_s
@@ -15,7 +16,7 @@ User = get_user_model()
 @extend_schema_view(
     post=extend_schema(
         summary='Регистрация пользователя',
-        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['ADMIN']],
+        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['USER']],
         description='Регистрация и создание нового пользователя с пользовательскими правами',
     ),
 )
@@ -25,7 +26,7 @@ class RegistrationView(generics.CreateAPIView):
     serializer_class = user_s.RegistrationSerializer
 
 
-@extend_schema(tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['ADMIN']])
+@extend_schema(tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['USER']])
 @extend_schema_view(
     get=extend_schema(summary='Профиль пользователя',),
     put=extend_schema(summary='Изменение профиля пользователя',),
@@ -46,7 +47,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 
 @extend_schema_view(
-    post=extend_schema(summary='Смена пароля', tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['ADMIN']]),
+    post=extend_schema(summary='Смена пароля', tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['USER']]),
 )
 class ChangePasswordView(APIView):
     serializer_class = user_s.ChangePasswordSerializer

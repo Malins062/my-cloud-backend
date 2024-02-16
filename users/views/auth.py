@@ -7,6 +7,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSetMixin
 
 from config.settings import SPECTACULAR_SETTINGS
 
@@ -17,7 +18,7 @@ User = get_user_model()
 @extend_schema_view(
     post=extend_schema(
         summary='Аутентификация пользователя в системе',
-        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['ADMIN']],
+        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['AUTH']],
         description='Аутентификация пользователя в системе и получение токена',
     ),
 )
@@ -28,7 +29,7 @@ class LoginView(ObtainAuthToken):
 @extend_schema_view(
     post=extend_schema(
         summary='Выход пользователя из системы',
-        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['ADMIN']],
+        tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['AUTH']],
         description='Выход пользователя из системы и удаление токена',
     ),
 )
