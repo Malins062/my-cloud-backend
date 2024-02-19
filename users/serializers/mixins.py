@@ -28,12 +28,12 @@ class UserMixinSerializer(serializers.ModelSerializer):
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
             raise ParseError(
                 dict(
-                    username=[f'Username field format: only Latin letters and numbers, the first character is a '
-                              f'letter, length from 4 to 20 characters.'])
+                    username=[f'Формат логина: только латинские буквы и цифры, первый символ - буква, длина от 4 до 20 '
+                              f'символов'])
             )
         elif User.objects.filter(username=value).exists():
             raise ParseError(
-                dict(username=[f'The user with the username: {value} - is already registered.'])
+                dict(username=[f'Пользователь с логином: {value} - уже зарегистрирован.'])
             )
         return value
 
@@ -42,6 +42,6 @@ class UserMixinSerializer(serializers.ModelSerializer):
         email = value.lower()
         if User.objects.filter(email=email).exists():
             raise ParseError(
-                dict(email=[f'The user with the this email: {email} - is already registered.'])
+                dict(email=[f'Пользователь с адресом электронной почты: {email} - уже зарегистрирован.'])
             )
         return email
