@@ -162,5 +162,9 @@ media/
 /media/
 */media/
 
+fs/
+/fs/
+*/fs/
+
 */migrations/*
 !*/migrations/__init__.py

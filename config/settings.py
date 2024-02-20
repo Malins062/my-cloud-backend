@@ -165,6 +165,8 @@ STATIC_URL = env.str('STATIC_URL', 'static/')
 STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
 MEDIA_URL = env.str('MEDIA_URL', 'media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, MEDIA_URL)
+FILE_STORAGE_URL = env.str('FILE_STORAGE_URL', 'fs/')
+FILE_STORAGE_ROOT = os.path.join(BASE_DIR, FILE_STORAGE_URL)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
