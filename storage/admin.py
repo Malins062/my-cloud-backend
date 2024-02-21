@@ -12,7 +12,7 @@ class FileAdmin(admin.ModelAdmin):
                     'comment',
                     'file',
                     'public_link', )
-    list_display_links = ('id', 'file_name', 'uploaded_at', 'file_size', )
+    list_display_links = ('file_name', 'uploaded_at', 'file_size', )
     list_filter = ('uploaded_at', 'file_name', 'file_size', 'comment', )
     search_fields = ('uploaded_at', 'file_name', 'file_size', 'comment', )
     ordering = ('file_name', 'file_size', )
