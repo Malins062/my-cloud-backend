@@ -25,13 +25,13 @@ class File(models.Model):
                             upload_to=get_upload_path,
                             storage=files_storage, )
     file_name = models.CharField(verbose_name='Имя файла', max_length=255, )
-    size = models.IntegerField(verbose_name='Размер файла', null=True, )
+    file_size = models.PositiveIntegerField(verbose_name='Размер файла', editable=False, null=True, blank=True, )
     comment = models.TextField(verbose_name='Комментарий', blank=True, null=True, )
 
     uploaded_at = models.DateTimeField(verbose_name='Дата загрузки', null=True, blank=True, default=None, )
     modified_at = models.DateTimeField(verbose_name='Дата изменения', null=True, blank=True, default=None, )
 
-    public_link = models.CharField(unique=True, max_length=50, )
+    public_link = models.CharField(verbose_name='Ссылка для скачивания', max_length=50, null=True, blank=True, )
     downloaded_at = models.DateTimeField(verbose_name='Дата скачивания', null=True, blank=True, default=None, )
 
     class Meta:
@@ -43,6 +43,14 @@ class File(models.Model):
         if not self.pk and not self.uploaded_at:
             self.uploaded_at = timezone.now()
         self.modified_at = timezone.now()
+
+        if not self.file_name:
+            self.file_name = self.file.name
+
+        super(File, self).save(*args, **kwargs)
+
+        self.file_size = self.file.size
+
         return super(File, self).save(*args, **kwargs)
 
     def __str__(self):
