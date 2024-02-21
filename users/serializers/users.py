@@ -12,10 +12,10 @@ class UsersListSerializer(serializers.ModelSerializer):
         fields = UserMixinSerializer.Meta.fields + ('id',
                                                     'date_joined',
                                                     'last_login',
-                                                    'is_staff', )
+                                                    'is_superuser', )
 
 
 class UsersUpdateSerializer(UserMixinSerializer):
 
     class Meta(UserMixinSerializer.Meta):
-        fields = UserMixinSerializer.Meta.fields + ('is_staff',)
+        fields = UserMixinSerializer.Meta.fields + ('is_superuser',)

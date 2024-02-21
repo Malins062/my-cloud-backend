@@ -35,11 +35,11 @@ class UserAdmin(UserAdmin):
     #         'fields': ('email', 'phone_number', 'password1', 'password2',),
     #     }),
     # )
-    list_display = ('id', 'username', 'full_name', 'email', )
+    list_display = ('id', 'username', 'full_name', 'email', 'is_superuser', )
 
     list_display_links = ('id', 'username', 'full_name',)
-    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups', )
-    search_fields = ('username', 'first_name', 'last_name', 'email', 'phone_number', )
-    ordering = ('id', )
+    list_filter = ('is_staff', 'is_superuser', 'is_active', )
+    search_fields = ('username', 'first_name', 'last_name', 'email', 'full_name', )
+    ordering = ('id', 'username', 'full_name', )
     filter_horizontal = ('groups', 'user_permissions', )
     readonly_fields = ('last_login', 'date_joined', )
