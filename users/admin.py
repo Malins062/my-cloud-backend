@@ -4,6 +4,15 @@ from django.contrib.auth.models import Group
 
 from users.models.users import User
 
+admin.site.site_header = 'Администрирование «Облачное хранилище данных»'
+admin.site.site_title = 'Панель администрирования'
+admin.site.index_title = 'Добро пожаловать в административную панель'
+
+try:
+    from rest_framework.authtoken.models import TokenProxy as DRFToken
+except ImportError:
+    from rest_framework.authtoken.models import Token as DRFToken
+admin.site.unregister(DRFToken)
 
 admin.site.unregister(Group)
 
