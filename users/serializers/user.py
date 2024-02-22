@@ -55,12 +55,18 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             'new_password',
         )
 
-    def validate(self, attrs):
+    def validate_old_password(self, value):
         user = self.instance
-        password = attrs.pop('old_password') if 'old_password' in attrs else None
-        if not user.check_password(password):
-            raise ValidationError('Проверьте правильность текущего пароля.')
-        return attrs
+        if not user.check_password(value):
+            raise ValidationError('Проверьте правильность текущего пароля для пользователя.')
+        return value
+
+    # def validate(self, attrs):
+    #     user = self.instance
+    #     password = attrs.pop('old_password') if 'old_password' in attrs else None
+    #     if not user.check_password(password):
+    #         raise ValidationError('Проверьте правильность текущего пароля.')
+    #     return attrs
 
     @staticmethod
     def validate_new_password(value):
