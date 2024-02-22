@@ -24,7 +24,7 @@ class File(models.Model):
     file = models.FileField(verbose_name='Файл',
                             upload_to=get_upload_path,
                             storage=files_storage, )
-    file_name = models.CharField(verbose_name='Имя файла', max_length=255, )
+    file_name = models.CharField(verbose_name='Имя файла', max_length=255,  editable=False, null=True, blank=True, )
     file_size = models.PositiveIntegerField(verbose_name='Размер файла', editable=False, null=True, blank=True, )
     comment = models.TextField(verbose_name='Комментарий', blank=True, null=True, )
 
@@ -44,8 +44,8 @@ class File(models.Model):
             self.uploaded_at = timezone.now()
         self.modified_at = timezone.now()
 
-        if not self.file_name:
-            self.file_name = self.file.name
+        if not self.file_name and self.file:
+            self.file_name = os.path.basename(self.file.name)
 
         super(File, self).save(*args, **kwargs)
 
