@@ -39,7 +39,7 @@ class UserAdmin(UserAdmin):
 
     list_display_links = ('id', 'username', 'full_name',)
     list_filter = ('is_staff', 'is_superuser', 'is_active', )
-    search_fields = ('username', 'first_name', 'last_name', 'email', 'full_name', )
+    search_fields = ('username', 'first_name', 'last_name', 'email', )
     ordering = ('id', 'username', 'first_name', 'last_name', 'email', )
     filter_horizontal = ('groups', 'user_permissions', )
     readonly_fields = ('last_login', 'date_joined', )
