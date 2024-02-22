@@ -3,7 +3,7 @@ import re
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ValidationError
 
 from users.serializers.mixins import UserMixinSerializer
 
@@ -24,11 +24,8 @@ class RegistrationSerializer(UserMixinSerializer):
     @staticmethod
     def validate_password(value):
         if not re.match(r'(?=^.{6,}$)(?=.*\d+)(?=.*[\W_]+)(?![.\n])(?=.*[A-ZА-Я]+)(?=.*[a-z]*).*$', value):
-            raise ParseError(
-                dict(
-                    password=[f'Формат пароля: не менее 6 символов, как минимум одна заглавная буква, одна цифра и один'
-                              f'спецсимвол'])
-            )
+            raise ValidationError(f'Формат пароля: не менее 6 символов, как минимум одна заглавная буква, одна цифра '
+                                  f'и один спецсимвол')
         return value
 
     def create(self, validated_data):
@@ -62,9 +59,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         user = self.instance
         password = attrs.pop('old_password') if 'old_password' in attrs else None
         if not user.check_password(password):
-            raise ParseError(
-                {'password': ['Проверьте правильность текущего пароля.']}
-            )
+            raise ValidationError('Проверьте правильность текущего пароля.')
         return attrs
 
     @staticmethod
