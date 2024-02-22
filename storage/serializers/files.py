@@ -6,9 +6,7 @@ from storage.models.files import File
 User = get_user_model()
 
 
-class FileSerializer(serializers.ModelSerializer):
-    file_name = serializers.CharField()
-    comment = serializers.CharField(allow_null=True)
+class FilesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
@@ -22,3 +20,18 @@ class FileSerializer(serializers.ModelSerializer):
             'uploaded_at',
             'modified_at',
         )
+
+
+class FilesUpdateSerializer(serializers.ModelSerializer):
+    file_name = serializers.CharField(allow_null=True)
+    comment = serializers.CharField(allow_null=True)
+
+    class Meta(FilesSerializer.Meta):
+        pass
+
+
+class FilesDeleteSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=True)
+
+    class Meta(FilesSerializer.Meta):
+        pass
