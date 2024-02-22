@@ -47,9 +47,8 @@ class File(models.Model):
         if not self.file_name and self.file:
             self.file_name = os.path.basename(self.file.name)
 
-        super(File, self).save(*args, **kwargs)
-
-        self.file_size = self.file.size
+        if self.file:
+            self.file_size = self.file.size
 
         return super(File, self).save(*args, **kwargs)
 
