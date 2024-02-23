@@ -19,7 +19,7 @@ class RegistrationSerializer(UserMixinSerializer):
     password = serializers.CharField(required=True, write_only=True)
 
     class Meta(UserMixinSerializer.Meta):
-        fields = UserMixinSerializer.Meta.fields + ('password',)
+        fields = ('id', 'password',) + UserMixinSerializer.Meta.fields
 
     @staticmethod
     def validate_password(value):

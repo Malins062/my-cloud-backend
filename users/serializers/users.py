@@ -18,4 +18,6 @@ class UsersListSerializer(serializers.ModelSerializer):
 class UsersUpdateSerializer(UserMixinSerializer):
 
     class Meta(UserMixinSerializer.Meta):
-        fields = UserMixinSerializer.Meta.fields + ('is_superuser',)
+        fields = (('id', ) +
+                  UserMixinSerializer.Meta.fields +
+                  ('is_superuser', ))
