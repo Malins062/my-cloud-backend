@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
@@ -19,7 +21,7 @@ User = get_user_model()
 @extend_schema(tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']])
 @extend_schema_view(
     list=extend_schema(summary='Получение списка файлов текущего пользователя'),
-    post=extend_schema(summary='Загрузка файла текущего пользователя'),
+    post=extend_schema(summary='Загрузка файла для текущего пользователя'),
     retrieve=extend_schema(summary='Информация о файле', ),
     partial_update=extend_schema(summary='Изменение информации о файле', ),
     destroy=extend_schema(summary='Удаление файла', ),
@@ -48,6 +50,16 @@ class FilesViewSet(RetrieveModelMixin,
         serializer.save(owner=self.request.user)
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            instance = self.get_object()
+            file = File.objects.get(id=instance.id)
+            file_path = file.file.path
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                file.delete()
+                self.perform_destroy(instance)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        except File.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
