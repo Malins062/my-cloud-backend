@@ -8,6 +8,7 @@ from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyM
     CreateModelMixin
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 from rest_framework.viewsets import GenericViewSet
 
 from config.settings import SPECTACULAR_SETTINGS
@@ -49,6 +50,39 @@ class FilesViewSet(RetrieveModelMixin,
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        response_status = HTTP_200_OK
+        response_messages = None
+
+        if 'file_name' in request.data:
+            new_file_name = request.data.get('file_name')
+            old_file_path = instance.file.path
+            new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
+
+            try:
+                os.rename(old_file_path, new_file_path)
+                instance.file.name = new_file_name
+                instance.file_name = new_file_name
+                instance.save()
+                response_messages = {'message': 'Файл переименован.'}
+            except Exception as e:
+                response_messages = {'error': str(e)}
+                response_status = HTTP_400_BAD_REQUEST
+
+        if 'comment' in request.data:
+            new_comment = request.data.get('comment')
+
+            try:
+                instance.comment = new_comment
+                instance.save()
+                response_messages = {'message': 'Коментарий к файлу изменен.'}
+            except Exception as e:
+                response_messages = {'error': str(e)}
+                response_status = HTTP_400_BAD_REQUEST
+
+        return Response(response_messages, status=response_status)
+
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -58,7 +92,7 @@ class FilesViewSet(RetrieveModelMixin,
                 os.remove(file_path)
                 file.delete()
                 self.perform_destroy(instance)
-                return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response({'message': 'Файл удален'}, status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND)
         except File.DoesNotExist:
