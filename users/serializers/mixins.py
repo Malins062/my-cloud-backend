@@ -27,7 +27,7 @@ class UserMixinSerializer(serializers.ModelSerializer):
     def validate_username(value):
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9]{3,19}$', value):
             raise ValidationError(f'Формат логина: только латинские буквы и цифры, первый символ - буква, длина от 4 '
-                                  f'до 20 символов')
+                                  f'до 20 символов.')
         elif User.objects.filter(username=value).exists():
             raise ValidationError(f'Пользователь с логином: {value} - уже зарегистрирован.')
         return value

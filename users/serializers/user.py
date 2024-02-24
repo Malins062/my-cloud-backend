@@ -25,7 +25,7 @@ class RegistrationSerializer(UserMixinSerializer):
     def validate_password(value):
         if not re.match(r'(?=^.{6,}$)(?=.*\d+)(?=.*[\W_]+)(?![.\n])(?=.*[A-ZА-Я]+)(?=.*[a-z]*).*$', value):
             raise ValidationError(f'Формат пароля: не менее 6 символов, как минимум одна заглавная буква, одна цифра '
-                                  f'и один спецсимвол')
+                                  f'и один спецсимвол.')
         return value
 
     def create(self, validated_data):
