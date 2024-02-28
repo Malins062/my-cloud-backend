@@ -62,7 +62,12 @@ class File(models.Model):
 def delete_files(sender, instance, **kwargs):
     user = instance
     files = File.objects.filter(owner=user)
-    for file in files:
-        file_path = file.file.path
-        if os.path.exists(file_path):
-            os.remove(file_path)
+    if files:
+        for file in files:
+            file_path = file.file.path
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+        path = os.path.dirname(files[0].file.path)
+        os.rmdir(path)
+
