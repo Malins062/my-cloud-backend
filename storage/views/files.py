@@ -79,14 +79,14 @@ class FilesViewSet(RetrieveModelMixin,
                     raise ValidationError(f'Неверный формат имени файла: {new_file_name}')
 
                 if File.objects.filter(file_name=new_file_name).exists():
-                    raise ValidationError({'error': f'Файл с именем: {new_file_name} - уже существует в системе.'})
+                    raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
 
             old_file_path = instance.file.path
             new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
 
             try:
                 os.rename(old_file_path, new_file_path)
-                instance.file.name = new_file_name
+                instance.file.name = new_file_path
                 instance.file_name = new_file_name
                 instance.save()
                 response_messages = {'message': 'Файл переименован.'}
