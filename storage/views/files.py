@@ -1,10 +1,11 @@
 import os
+import re
 
 from django.contrib.auth import get_user_model
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -54,7 +55,7 @@ class FilesViewSet(RetrieveModelMixin,
             else:
                 try:
                     user = User.objects.get(id=user_id)
-                except Exception as e:
+                except Exception:
                     raise NotFound(f'Пользователь с идентификатором #{user_id} не существует.')
         return user
 
@@ -73,6 +74,13 @@ class FilesViewSet(RetrieveModelMixin,
 
         if 'file_name' in request.data:
             new_file_name = request.data.get('file_name')
+            if new_file_name:
+                if not re.match(r'^[\w\s-]+(\.[\w\s-]+)*$', new_file_name):
+                    raise ValidationError(f'Неверный формат имени файла: {new_file_name}')
+
+                if File.objects.filter(file_name=new_file_name).exists():
+                    raise ValidationError({'error': f'Файл с именем: {new_file_name} - уже существует в системе.'})
+
             old_file_path = instance.file.path
             new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
 
