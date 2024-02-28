@@ -1,3 +1,5 @@
+import os.path
+
 from django.contrib.auth import get_user_model
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
@@ -6,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.viewsets import GenericViewSet
 
 from config.settings import SPECTACULAR_SETTINGS
+from storage.models.files import files_storage
 from users.serializers import users as users_s
 
 

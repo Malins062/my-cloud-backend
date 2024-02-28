@@ -3,6 +3,8 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.files.storage import FileSystemStorage
+from django.dispatch import receiver
+from django.db.models.signals import pre_delete
 
 from config.settings import FILE_STORAGE_ROOT
 
@@ -54,3 +56,13 @@ class File(models.Model):
 
     def __str__(self):
         return self.file.name
+
+
+@receiver(pre_delete, sender=User)
+def delete_files(sender, instance, **kwargs):
+    user = instance
+    files = File.objects.filter(owner=user)
+    for file in files:
+        file_path = file.file.path
+        if os.path.exists(file_path):
+            os.remove(file_path)
