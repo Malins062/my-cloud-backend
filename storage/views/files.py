@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -44,11 +45,26 @@ class FilesViewSet(RetrieveModelMixin,
             case 'DELETE': return files_s.FilesDeleteSerializer
             case _: return files_s.FilesSerializer
 
+    def get_query_user(self):
+        user = self.request.user
+        user_id = self.request.query_params.get('user_id')  # Получаем user_id из query параметров
+        if user_id:
+            if not IsAdminUser:
+                raise PermissionDenied('Отказано в доступе. Необходимо иметь статус администратора.')
+            else:
+                try:
+                    user = User.objects.get(id=user_id)
+                except Exception as e:
+                    raise NotFound(f'Пользователь с идентификатором #{user_id} не существует.')
+        return user
+
     def get_queryset(self):
-        return self.queryset.filter(owner=self.request.user)
+        queryset = super(FilesViewSet, self).get_queryset()
+        return queryset.filter(owner=self.get_query_user())
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        # serializer.save(owner=self.request.user)
+        serializer.save(owner=self.get_query_user())
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -76,7 +92,7 @@ class FilesViewSet(RetrieveModelMixin,
             try:
                 instance.comment = new_comment
                 instance.save()
-                response_messages = {'message': 'Коментарий к файлу изменен.'}
+                response_messages = {'message': 'Комментарий к файлу изменен.'}
             except Exception as e:
                 response_messages = {'error': str(e)}
                 response_status = HTTP_400_BAD_REQUEST
