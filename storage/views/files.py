@@ -64,7 +64,11 @@ class FilesViewSet(RetrieveModelMixin,
         return queryset.filter(owner=self.get_query_user())
 
     def perform_create(self, serializer):
-        # serializer.save(owner=self.request.user)
+        file = serializer.validated_data.get('file')
+        new_file_name = os.path.basename(file.name)
+        if File.objects.filter(file_name=new_file_name,
+                               owner=self.get_query_user()).exists():
+            raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
         serializer.save(owner=self.get_query_user())
 
     def update(self, request, *args, **kwargs):
@@ -78,7 +82,7 @@ class FilesViewSet(RetrieveModelMixin,
                 if not re.match(r'^[\w\s-]+(\.[\w\s-]+)*$', new_file_name):
                     raise ValidationError(f'Неверный формат имени файла: {new_file_name}')
 
-                if File.objects.filter(file_name=new_file_name).exists():
+                if File.objects.filter(file_name=new_file_name, owner=self.get_query_user()).exists():
                     raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
 
             old_file_path = instance.file.path
