@@ -27,7 +27,7 @@ class UsersViewSet(RetrieveModelMixin,
                    ListModelMixin,
                    GenericViewSet):
     queryset = User.objects.all()
-    permission_classes = (IsAuthenticated, IsAdminUser,)
+    permission_classes = (IsAuthenticated, IsAdminUser, )
     serializer_class = users_s.UsersUpdateSerializer
 
     def get_serializer_class(self):
