@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.http import FileResponse
 
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
@@ -23,7 +23,18 @@ from storage.models.files import File
 User = get_user_model()
 
 
-@extend_schema(tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']])
+@extend_schema(
+    tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
+    parameters=[
+        OpenApiParameter(
+            name='user_id',
+            type=int,
+            location=OpenApiParameter.QUERY,
+            description='Идентификатор пользователя (только для администраторов)',
+            required=False
+        )
+    ]
+)
 @extend_schema_view(
     list=extend_schema(summary='Получение списка файлов текущего пользователя'),
     post=extend_schema(summary='Загрузка файла для текущего пользователя'),
@@ -49,7 +60,7 @@ class FilesViewSet(RetrieveModelMixin,
 
     def get_query_user(self):
         user = self.request.user
-        user_id = self.request.data.get('user_id')  # Получаем user_id из query параметров
+        user_id = self.request.query_params.get('user_id')  # Получаем user_id из query параметров
         if user_id:
             if not user.is_staff:
                 raise PermissionDenied('Отказано в доступе. Необходимо иметь статус администратора.')
@@ -61,10 +72,11 @@ class FilesViewSet(RetrieveModelMixin,
         return user
 
     def get_queryset(self):
+        serializer = files_s.FilesSerializer(data=self.request.data)
         queryset = super(FilesViewSet, self).get_queryset()
         user = self.get_query_user()
 
-        file_id = self.request.data.get('file_id')  # Получаем file_id из query параметров
+        file_id = self.request.query_params.get('file_id')  # Получаем file_id из query параметров
         if file_id:
             return self.download_file(pk=file_id)
             # file = File.objects.get(pk=file_id)
@@ -83,46 +95,45 @@ class FilesViewSet(RetrieveModelMixin,
             raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
         serializer.save(owner=self.get_query_user())
 
-    # def update(self, request, *args, **kwargs):
-    #     serializer = files_s.FilesUpdateSerializer(data=request.data)
-    #     instance = self.get_object()
-    #     response_status = HTTP_200_OK
-    #     response_messages = None
-    #
-    #     if 'file_name' in request.data:
-    #         new_file_name = request.data.get('file_name')
-    #         if new_file_name:
-    #             if not re.match(r'^[\w\s-]+(\.[\w\s-]+)*$', new_file_name):
-    #                 raise ValidationError(f'Неверный формат имени файла: {new_file_name}')
-    #
-    #             if File.objects.filter(file_name=new_file_name, owner=self.get_query_user()).exists():
-    #                 raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
-    #
-    #         old_file_path = instance.file.path
-    #         new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
-    #
-    #         try:
-    #             os.rename(old_file_path, new_file_path)
-    #             instance.file.name = new_file_path
-    #             instance.file_name = new_file_name
-    #             instance.save()
-    #             response_messages = {'message': 'Файл переименован.'}
-    #         except Exception as e:
-    #             response_messages = {'error': str(e)}
-    #             response_status = HTTP_400_BAD_REQUEST
-    #
-    #     if 'comment' in request.data:
-    #         new_comment = request.data.get('comment')
-    #
-    #         try:
-    #             instance.comment = new_comment
-    #             instance.save()
-    #             response_messages = {'message': 'Комментарий к файлу изменен.'}
-    #         except Exception as e:
-    #             response_messages = {'error': str(e)}
-    #             response_status = HTTP_400_BAD_REQUEST
-    #
-    #     return Response(response_messages, status=response_status)
+    def update(self, request, *args, **kwargs):
+        serializer = files_s.FilesUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            raise ValidationError(serializer.errors)
+
+        instance = self.get_object()
+        response_status = HTTP_200_OK
+        response_messages = None
+
+        new_file_name = request.data.get('file_name')
+        if new_file_name:
+            if File.objects.filter(file_name=new_file_name, owner=self.get_query_user()).exists():
+                raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
+
+            old_file_path = instance.file.path
+            new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
+
+            try:
+                os.rename(old_file_path, new_file_path)
+                instance.file.name = new_file_path
+                instance.file_name = new_file_name
+                instance.save()
+                response_messages = {'message': 'Файл переименован.'}
+            except Exception as e:
+                response_messages = {'error': str(e)}
+                response_status = HTTP_400_BAD_REQUEST
+
+        new_comment = request.data.get('comment')
+        if new_comment:
+
+            try:
+                instance.comment = new_comment
+                instance.save()
+                response_messages += {'message': 'Комментарий к файлу изменен.'}
+            except Exception as e:
+                response_messages += {'error': str(e)}
+                response_status = HTTP_400_BAD_REQUEST
+
+        return Response(response_messages, status=response_status)
 
     def destroy(self, request, *args, **kwargs):
         try:
