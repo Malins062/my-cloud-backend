@@ -1,16 +1,12 @@
 import os
-import re
-
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.http import FileResponse
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
-from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
 from rest_framework.viewsets import GenericViewSet

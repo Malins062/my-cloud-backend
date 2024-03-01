@@ -182,8 +182,6 @@ SPECTACULAR_SETTINGS = {
     ],
 
     'SERVE_AUTHENTICATION': [
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -198,10 +196,21 @@ SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
     'SORT_OPERATIONS': False,
 
+    'COMPONENTS': {
+        'SCHEMAS': False,
+    },
+
     'TITLES_TAGS': {
         'AUTH': 'Аутентификация и авторизация',
         'USER': 'Интерфейс пользователя',
         'ADMIN': 'Интерфейс администратора',
         'STORAGE': 'Файловое хранилище',
     },
+
+    # 'TAGS': [
+    #     {
+    #         'name': 'STORAGE',
+    #         'exclude': ['put'],
+    #     }
+    # ],
 }
