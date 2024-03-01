@@ -38,7 +38,16 @@ User = get_user_model()
 @extend_schema_view(
     list=extend_schema(summary='Получение списка файлов текущего пользователя'),
     post=extend_schema(summary='Загрузка файла для текущего пользователя'),
-    retrieve=extend_schema(summary='Информация о файле', ),
+    retrieve=extend_schema(summary='Информация о файле',
+                           parameters=[
+                               OpenApiParameter(
+                                   name='download',
+                                   type=bool,
+                                   location=OpenApiParameter.QUERY,
+                                   description='Запрос на скачивание файла',
+                                   required=False
+                               )
+                           ]),
     partial_update=extend_schema(summary='Изменение информации о файле', ),
     destroy=extend_schema(summary='Удаление файла', ),
 )
@@ -75,17 +84,17 @@ class FilesViewSet(RetrieveModelMixin,
         serializer = files_s.FilesSerializer(data=self.request.data)
         queryset = super(FilesViewSet, self).get_queryset()
         user = self.get_query_user()
-
-        file_id = self.request.query_params.get('file_id')  # Получаем file_id из query параметров
-        if file_id:
-            return self.download_file(pk=file_id)
-            # file = File.objects.get(pk=file_id)
-            # if file:
-            #     file.downloaded_at = timezone.now()
-            #     file.save()
-            #     return FileResponse(file.file, status.HTTP_200_OK, as_attachment=True)
-
         return queryset.filter(owner=user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+
+        is_download = self.request.query_params.get('download')  # Получаем download из query параметров
+        if is_download:
+            return self.download_file(pk=instance.id)
+        else:
+            return Response(serializer.data)
 
     def perform_create(self, serializer):
         file = serializer.validated_data.get('file')
