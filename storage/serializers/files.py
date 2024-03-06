@@ -3,15 +3,29 @@ import re
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
 
 from storage.models.files import File
 
 User = get_user_model()
 
 
-class FilesSerializer(serializers.ModelSerializer):
+class FilesListSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=False,
+                                       validators=[MinValueValidator(1)])
 
+
+class FilesRetrieveSerializer(FilesListSerializer):
+    ACTION_CHOICES = {
+        'download': 'Download file',
+        'get_link': 'Get a link to download the file',
+        'remove_link': 'Remove link'
+    }
+    action = serializers.ChoiceField(required=False,
+                                     choices=ACTION_CHOICES)
+
+
+class FilesSerializer(serializers.ModelSerializer):
     class Meta:
         model = File
         fields = '__all__'

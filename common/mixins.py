@@ -21,6 +21,11 @@ def get_query_user(instance):
     return user
 
 
+def replace_query_params(params):
+    query_params = {key: value[0] if isinstance(value, list) else value for key, value in params.items()}
+    return query_params
+
+
 def get_unique_str(length) -> str:
     unique_string = str(uuid.uuid4()).replace('-', '')[:length]
     return unique_string

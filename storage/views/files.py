@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.http import FileResponse
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
-from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
@@ -12,9 +12,9 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_404_NO
 from rest_framework.viewsets import GenericViewSet
 
 from config.settings import SPECTACULAR_SETTINGS
+from common.mixins import get_query_user, replace_query_params, get_unique_str
 from storage.serializers import files as files_s
 from storage.models.files import File
-
 
 User = get_user_model()
 
@@ -34,13 +34,15 @@ User = get_user_model()
 @extend_schema_view(
     list=extend_schema(summary='Получение списка файлов текущего пользователя'),
     post=extend_schema(summary='Загрузка файла для текущего пользователя'),
-    retrieve=extend_schema(summary='Информация о файле',
+    retrieve=extend_schema(summary='Получить информацию о файле (скачать, сформировать ссылку для скачивания)',
                            parameters=[
                                OpenApiParameter(
-                                   name='download',
-                                   type=bool,
+                                   name='action',
+                                   type=str,
+                                   # enum=[choice for choice in files_s.FilesGetQueryParamsSerializer.ACTION_CHOICES],
+                                   enum=files_s.FilesRetrieveSerializer.ACTION_CHOICES,
                                    location=OpenApiParameter.QUERY,
-                                   description='Запрос на скачивание файла',
+                                   description='Выбор действия',
                                    required=False
                                )
                            ]),
@@ -54,65 +56,67 @@ class FilesViewSet(RetrieveModelMixin,
                    ListModelMixin,
                    GenericViewSet):
     queryset = File.objects.all()
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     serializer_class = files_s.FilesSerializer
 
     def get_serializer_class(self):
         match self.request.method:
-            case 'PATCH': return files_s.FilesUpdateSerializer
-            case 'DELETE': return files_s.FilesDeleteSerializer
-            case _: return files_s.FilesSerializer
-
-    def get_query_user(self):
-        user = self.request.user
-        user_id = self.request.query_params.get('user_id')  # Получаем user_id из query параметров
-        if user_id:
-            if not user.is_staff:
-                raise PermissionDenied('Отказано в доступе. Необходимо иметь статус администратора.')
-            else:
-                try:
-                    user = User.objects.get(id=user_id)
-                except Exception:
-                    raise NotFound(f'Пользователь с идентификатором #{user_id} не существует.')
-        return user
+            case 'PATCH':
+                return files_s.FilesUpdateSerializer
+            case 'DELETE':
+                return files_s.FilesDeleteSerializer
+            case _:
+                return files_s.FilesSerializer
 
     def get_queryset(self):
+        query_params = replace_query_params(self.request.query_params)
+
         serializer = files_s.FilesSerializer(data=self.request.data)
+        match self.action:
+            case 'retrieve':
+                serializer = files_s.FilesRetrieveSerializer(data=query_params)
+            case 'list':
+                serializer = files_s.FilesListSerializer(data=query_params)
+        serializer.is_valid(raise_exception=True)
+
+        user = get_query_user(self)
+
         queryset = super(FilesViewSet, self).get_queryset()
-        user = self.get_query_user()
         return queryset.filter(owner=user)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
 
-        is_download = self.request.query_params.get('download')  # Получаем download из query параметров
-        if is_download:
-            return self.download_file(pk=instance.id)
-        else:
-            return Response(serializer.data)
+        action = self.request.query_params.get('action')
+        match action:
+            case 'download':
+                return self.download_file(pk=instance.id)
+            case 'get_link':
+                return Response(get_unique_str(50))
+            case _:
+                return Response(serializer.data)
 
     def perform_create(self, serializer):
         file = serializer.validated_data.get('file')
         new_file_name = os.path.basename(file.name)
         if File.objects.filter(file_name=new_file_name,
-                               owner=self.get_query_user()).exists():
-            raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
-        serializer.save(owner=self.get_query_user())
+                               owner=get_query_user(self)).exists():
+            raise ValidationError(detail=f'Файл с именем: {new_file_name} - уже существует в системе.')
+        serializer.save(owner=get_query_user(self))
 
     def update(self, request, *args, **kwargs):
         serializer = files_s.FilesUpdateSerializer(data=request.data)
-        if not serializer.is_valid():
-            raise ValidationError(serializer.errors)
+        serializer.is_valid(raise_exception=True)
 
         instance = self.get_object()
         response_status = HTTP_200_OK
-        response_messages = None
+        response_messages = dict()
 
         new_file_name = request.data.get('file_name')
         if new_file_name:
-            if File.objects.filter(file_name=new_file_name, owner=self.get_query_user()).exists():
-                raise ValidationError(f'Файл с именем: {new_file_name} - уже существует в системе.')
+            if File.objects.filter(file_name=new_file_name, owner=get_query_user(self)).exists():
+                raise ValidationError(detail=f'Файл с именем: {new_file_name} - уже существует в системе.')
 
             old_file_path = instance.file.path
             new_file_path = os.path.join(os.path.dirname(old_file_path), new_file_name)
@@ -122,9 +126,9 @@ class FilesViewSet(RetrieveModelMixin,
                 instance.file.name = new_file_path
                 instance.file_name = new_file_name
                 instance.save()
-                response_messages = {'message': 'Файл переименован.'}
+                response_messages = dict(response_messages, message='Файл переименован.')
             except Exception as e:
-                response_messages = {'error': str(e)}
+                response_messages = dict(response_messages, error=str(e))
                 response_status = HTTP_400_BAD_REQUEST
 
         new_comment = request.data.get('comment')
@@ -133,9 +137,9 @@ class FilesViewSet(RetrieveModelMixin,
             try:
                 instance.comment = new_comment
                 instance.save()
-                response_messages += {'message': 'Комментарий к файлу изменен.'}
+                response_messages = dict(response_messages, message='Комментарий к файлу изменен.')
             except Exception as e:
-                response_messages += {'error': str(e)}
+                response_messages = dict(response_messages, error=str(e))
                 response_status = HTTP_400_BAD_REQUEST
 
         return Response(response_messages, status=response_status)
