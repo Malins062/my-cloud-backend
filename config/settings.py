@@ -38,6 +38,7 @@ INSTALLED_APPS += [
     'api',
     'users',
     'storage',
+    'common',
 ]
 
 # After apps
