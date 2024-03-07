@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
+from rest_framework.fields import empty
 
 from storage.models.files import File
 
@@ -13,6 +14,13 @@ User = get_user_model()
 class FilesListSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False,
                                        validators=[MinValueValidator(1)])
+
+    def run_validation(self, data=empty):
+        unknown_fields = set(data.keys()) - set(self.fields.keys())
+        if unknown_fields:
+            raise serializers.ValidationError(f'Лишние поля в запросе: {", ".join(unknown_fields)}')
+
+        return super().run_validation(data)
 
 
 class FilesRetrieveSerializer(FilesListSerializer):
