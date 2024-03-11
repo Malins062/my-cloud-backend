@@ -39,13 +39,13 @@ User = get_user_model()
                                OpenApiParameter(
                                    name='action',
                                    type=str,
-                                   # enum=[choice for choice in files_s.FilesGetQueryParamsSerializer.ACTION_CHOICES],
                                    enum=files_s.FilesRetrieveSerializer.ACTION_CHOICES,
                                    location=OpenApiParameter.QUERY,
                                    description='Выбор действия',
                                    required=False
                                )
-                           ]),
+                           ]
+                           ),
     partial_update=extend_schema(summary='Изменение информации о файле', ),
     destroy=extend_schema(summary='Удаление файла', ),
 )
