@@ -15,10 +15,28 @@ class FilesListSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False,
                                        validators=[MinValueValidator(1)])
 
+    # def create(self, validated_data):
+    #     query_params = self.context.get('query_params')
+    #
+    # def parse_query_params(self, data):
+    #     allowed_fields = {'user_id', 'action'}  # список разрешенных полей
+    #     requested_fields = set(data.keys())  # список полей в GET запросе
+    #
+    #     invalid_fields = requested_fields - allowed_fields
+    #     if invalid_fields:
+    #         raise serializers.ValidationError('Invalid fields: {}'.format(', '.join(invalid_fields)))
+    #
+    #     return data
+
     def run_validation(self, data=empty):
-        unknown_fields = set(data.keys()) - set(self.fields.keys())
-        if unknown_fields:
-            raise serializers.ValidationError(f'Лишние поля в запросе: {", ".join(unknown_fields)}')
+        if isinstance(data, dict):
+            allowed_fields = {'user_id', 'action'}  # список разрешенных полей
+            requested_fields = set(data.keys())  # список полей в GET запросе
+
+            invalid_fields = requested_fields - allowed_fields
+            # invalid_fields = set(data.keys()) - set(self.fields.keys())
+            if invalid_fields:
+                raise serializers.ValidationError(f'Неверные параметры в запросе: [{", ".join(invalid_fields)}]')
 
         return super().run_validation(data)
 

@@ -69,15 +69,15 @@ class FilesViewSet(RetrieveModelMixin,
                 return files_s.FilesSerializer
 
     def get_queryset(self):
-        query_params = replace_query_params(self.request.query_params)
-
-        serializer = files_s.FilesSerializer(data=self.request.data)
-        match self.action:
-            case 'retrieve':
-                serializer = files_s.FilesRetrieveSerializer(data=query_params)
-            case 'list':
-                serializer = files_s.FilesListSerializer(data=query_params)
-        serializer.is_valid(raise_exception=True)
+        # query_params = replace_query_params(self.request.query_params)
+        #
+        # serializer = files_s.FilesSerializer(data=self.request.data)
+        # match self.action:
+        #     case 'retrieve':
+        #         serializer = files_s.FilesRetrieveSerializer(data=query_params)
+        #     case 'list':
+        #         serializer = files_s.FilesListSerializer(data=query_params)
+        # serializer.is_valid(raise_exception=True)
 
         user = get_query_user(self)
 
@@ -85,6 +85,10 @@ class FilesViewSet(RetrieveModelMixin,
         return queryset.filter(owner=user)
 
     def retrieve(self, request, *args, **kwargs):
+        query_params = replace_query_params(self.request.query_params)
+        serializer = files_s.FilesRetrieveSerializer(data=query_params)
+        serializer.is_valid(raise_exception=True)
+
         instance = self.get_object()
         serializer = self.get_serializer(instance)
 
