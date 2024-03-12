@@ -3,12 +3,22 @@ import re
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound
-from rest_framework.fields import empty
+from rest_framework.exceptions import ValidationError
 
 from storage.models.files import File
 
+
+ACTION_CHOICES = {
+    'download': 'Скачать',
+    'get_link': 'Открыть общий доступ',
+    'remove_link': 'Закрыть общий доступ'
+}
+
 User = get_user_model()
+
+
+def get_choices():
+    return ACTION_CHOICES
 
 
 class FilesListSerializer(serializers.Serializer):
@@ -17,11 +27,7 @@ class FilesListSerializer(serializers.Serializer):
 
 
 class FilesRetrieveSerializer(FilesListSerializer):
-    ACTION_CHOICES = {
-        'download': 'Скачать',
-        'get_link': 'Открыть общий доступ',
-        'remove_link': 'Закрыть общий доступ'
-    }
+    ACTION_CHOICES = get_choices()
     action = serializers.ChoiceField(required=False,
                                      choices=ACTION_CHOICES)
 

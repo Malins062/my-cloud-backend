@@ -14,6 +14,7 @@ from rest_framework.viewsets import GenericViewSet
 from config.settings import SPECTACULAR_SETTINGS
 from common.mixins import get_query_user, replace_query_params, get_unique_str
 from storage.serializers import files as files_s
+from storage.serializers.files import ACTION_CHOICES
 from storage.models.files import File
 
 User = get_user_model()
@@ -93,13 +94,17 @@ class FilesViewSet(RetrieveModelMixin,
         serializer = self.get_serializer(instance)
 
         action = self.request.query_params.get('action')
-        match action:
-            case 'download':
+        if ACTION_CHOICES.get(action):
+            if action == 'download':
                 return self.download_file(pk=instance.id)
-            case 'get_link':
-                return Response(get_unique_str(50))
-            case _:
-                return Response(serializer.data)
+            else:
+                try:
+                    instance.public_link = get_unique_str(50) if action == 'get_link' else None
+                    instance.save()
+                except Exception as e:
+                    return Response({'error': str(e)}, status=HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         file = serializer.validated_data.get('file')
@@ -175,4 +180,4 @@ class FilesViewSet(RetrieveModelMixin,
             response['Content-Disposition'] = 'attachment; filename=' + file_instance.file.name
             return response
         except FileNotFoundError:
-            return Response({"error": "File not found"}, status=HTTP_404_NOT_FOUND)
+            return Response({'error': 'Файл не найден.'}, status=HTTP_404_NOT_FOUND)
