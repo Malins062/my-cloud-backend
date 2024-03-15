@@ -2,14 +2,14 @@ import logging
 from django.conf import settings
 from rest_framework.views import exception_handler
 
-# Устанавливаем уровень логирования в зависимости от DEBUG
-if settings.DEBUG:
-    log_level = logging.DEBUG
-else:
-    log_level = logging.INFO
-
-# Конфигурируем логирование
-logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+# # Устанавливаем уровень логирования в зависимости от DEBUG
+# if settings.DEBUG:
+#     log_level = logging.DEBUG
+# else:
+#     log_level = logging.INFO
+#
+# # Конфигурируем логирование
+# logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
 

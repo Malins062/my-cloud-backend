@@ -151,59 +151,73 @@ AUTH_PASSWORD_VALIDATORS = [
 ################################
 # LOGGER CONFIG
 ################################
+
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
-            "style": "{",
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} | {asctime} | {module} | {process:d} | {thread:d} | {message}',
+            'style': '{',
         },
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
+        'simple': {
+            'format': '{levelname} | {asctime} | {message}',
+            'style': '{',
         },
-    },
-    "filters": {
-        "special": {
-            "()": "project.logging.SpecialFilter",
-            "foo": "bar",
-        },
-        "require_debug_true": {
-            "()": "django.utils.log.RequireDebugTrue",
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '%(asctime)s %(levelname)s %(message)s %(name)s %(pathname)s %(lineno)s',
         },
     },
-    "handlers": {
-        "console": {
-            "level": "INFO",
-            "filters": ["require_debug_true"],
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
+
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
         },
-        "mail_admins": {
-            "level": "ERROR",
-            "class": "django.utils.log.AdminEmailHandler",
-            "filters": ["special"],
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
         },
     },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "propagate": True,
+
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
-        "django.request": {
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
-            "propagate": False,
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'json',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 5,
         },
-        "myproject.custom": {
-            "handlers": ["console", "mail_admins"],
-            "level": "INFO",
-            "filters": ["special"],
+        'file_dev': {
+            'filename': env.str('LOG_FILENAME', 'info.log'),
         },
+    },
+
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file', ],
+            'propagate': True,
+            # 'level': 'DEBUG',
+        },
+        'django.request': {
+            'handlers': ['console', 'file', ],
+            'propagate': False,
+            # 'level': 'DEBUG',
+        },
+        'django.server': {
+            'handlers': ['console', 'file', ],
+            'propagate': False,
+            # 'level': 'DEBUG',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file', ],
+        'level': 'WARNING',
     },
 }
-
 
 ################################
 # LOCALIZATION
