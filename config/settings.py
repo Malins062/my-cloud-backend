@@ -2,7 +2,6 @@ import os
 
 import environ
 
-
 root = environ.Path(__file__) - 2
 env = environ.Env()
 environ.Env.read_env(env.str(root(), '.env'))
@@ -47,7 +46,7 @@ INSTALLED_APPS += [
 ]
 
 AUTH_USER_MODEL = 'users.User'
-AUTHENTICATION_BACKENDS = ('users.backends.AuthBackend', )
+AUTHENTICATION_BACKENDS = ('users.backends.AuthBackend',)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -151,7 +150,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ################################
 # LOGGER CONFIG
 ################################
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -171,15 +169,6 @@ LOGGING = {
         },
     },
 
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-    },
-
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
@@ -190,8 +179,6 @@ LOGGING = {
             'formatter': 'json',
             'maxBytes': 1024 * 1024 * 5,  # 5MB
             'backupCount': 5,
-        },
-        'file_dev': {
             'filename': env.str('LOG_FILENAME', 'info.log'),
         },
     },
@@ -199,18 +186,18 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file', ],
-            'propagate': True,
-            # 'level': 'DEBUG',
+            'propagate': False,
+            'level': 'INFO' if DEBUG else 'WARNING',
         },
         'django.request': {
             'handlers': ['console', 'file', ],
             'propagate': False,
-            # 'level': 'DEBUG',
+            'level': 'INFO' if DEBUG else 'WARNING',
         },
         'django.server': {
             'handlers': ['console', 'file', ],
             'propagate': False,
-            # 'level': 'DEBUG',
+            'level': 'INFO' if DEBUG else 'WARNING',
         },
     },
     'root': {
