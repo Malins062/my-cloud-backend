@@ -148,8 +148,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 ################################
-# LOGGER CONFIG
+# LOGGING CONFIG
 ################################
+LOG_LEVEL_DEBUG = env.str('LOG_LEVEL_DEBUG', 'INFO')
+LOG_LEVEL_PRODUCTION = env.str('LOG_LEVEL_WARNING', 'WARNING')
+LOGGER = {
+    'level': LOG_LEVEL_DEBUG if DEBUG else LOG_LEVEL_PRODUCTION,
+    'handlers': ['console', 'file', ],
+    'propagate': False,
+}
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -173,37 +180,24 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
+            'level': LOG_LEVEL_DEBUG if DEBUG else LOG_LEVEL_PRODUCTION,
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'json',
             'maxBytes': 1024 * 1024 * 5,  # 5MB
-            'backupCount': 5,
+            'backupCount': 3,
             'filename': env.str('LOG_FILENAME', 'info.log'),
+            'level': LOG_LEVEL_DEBUG if DEBUG else LOG_LEVEL_PRODUCTION,
         },
     },
 
     'loggers': {
-        'django': {
-            'handlers': ['console', 'file', ],
-            'propagate': False,
-            'level': 'INFO' if DEBUG else 'WARNING',
-        },
-        'django.request': {
-            'handlers': ['console', 'file', ],
-            'propagate': False,
-            'level': 'INFO' if DEBUG else 'WARNING',
-        },
-        'django.server': {
-            'handlers': ['console', 'file', ],
-            'propagate': False,
-            'level': 'INFO' if DEBUG else 'WARNING',
-        },
+        'django': LOGGER,
+        'django.request': LOGGER,
+        'django.server': LOGGER,
     },
-    'root': {
-        'handlers': ['console', 'file', ],
-        'level': 'WARNING',
-    },
+    'root': LOGGER,
 }
 
 ################################
