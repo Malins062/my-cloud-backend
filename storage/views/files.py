@@ -1,8 +1,10 @@
 import os
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.http import FileResponse
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
+from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, \
     CreateModelMixin
@@ -96,7 +98,7 @@ class FilesViewSet(RetrieveModelMixin,
         action = self.request.query_params.get('action')
         if ACTION_CHOICES.get(action):
             if action == 'download':
-                return self.download_file(pk=instance.id)
+                return download_file(instance)
             else:
                 try:
                     instance.public_link = get_unique_str(50) if action == 'get_link' else None
@@ -168,16 +170,32 @@ class FilesViewSet(RetrieveModelMixin,
         except File.DoesNotExist:
             return Response(status=HTTP_404_NOT_FOUND)
 
-    @staticmethod
-    def download_file(pk):
-        file_instance = File.objects.get(pk=pk)
-        file_path = file_instance.file.path
 
-        try:
-            # Открываем файл и отправляем его как FileResponse
-            file_to_download = open(file_path, 'rb')
-            response = FileResponse(file_to_download)
-            response['Content-Disposition'] = 'attachment; filename=' + file_instance.file.name
-            return response
-        except FileNotFoundError:
-            return Response({'error': 'Файл не найден.'}, status=HTTP_404_NOT_FOUND)
+@extend_schema_view(
+    tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
+    retrieve=extend_schema(summary='Скачать файл по общей ссылке',)
+)
+@api_view(['GET'])
+def get_file(request, link):
+    file = File.objects.filter(public_link=link).first()
+    if file:
+        return download_file(file)
+    else:
+        return Response({'error': 'Файл не найден.'}, status=HTTP_404_NOT_FOUND)
+
+
+def download_file(file_instance):
+    try:
+        file_path = file_instance.file.path
+        file_instance.downloaded_at = timezone.now()
+        file_instance.save()
+
+        # Открываем файл и отправляем его как FileResponse
+        file_to_download = open(file_path, 'rb')
+        # response = FileResponse(file_to_download)
+        # response['Content-Disposition'] = 'attachment; filename=' + file_instance.file.name
+        # return response
+        return FileResponse(file_to_download, HTTP_200_OK, as_attachment=True, filename=file_instance.file.name)
+
+    except FileNotFoundError:
+        return Response({'error': 'Файл не найден.'}, status=HTTP_404_NOT_FOUND)

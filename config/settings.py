@@ -62,7 +62,7 @@ MIDDLEWARE = [
 
 # My middleware
 MIDDLEWARE += [
-    'common.middleware.LoggingMiddleware',
+    # 'common.middleware.LoggingMiddleware',
 ]
 
 INTERNAL_IPS = [
