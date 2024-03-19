@@ -172,13 +172,13 @@ class FilesViewSet(RetrieveModelMixin,
 
 
 @extend_schema(
-    # tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
+    tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
     summary='Скачать файл по общей ссылке',
     parameters=[
         OpenApiParameter(
             name='link',
             type=str,
-            location=OpenApiParameter.QUERY,
+            location=OpenApiParameter.PATH,
             description='Идентификатор ссылки',
             required=True
         )
