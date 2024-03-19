@@ -171,9 +171,18 @@ class FilesViewSet(RetrieveModelMixin,
             return Response(status=HTTP_404_NOT_FOUND)
 
 
-@extend_schema_view(
-    tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
-    retrieve=extend_schema(summary='Скачать файл по общей ссылке',)
+@extend_schema(
+    # tags=[SPECTACULAR_SETTINGS['TITLES_TAGS']['STORAGE']],
+    summary='Скачать файл по общей ссылке',
+    parameters=[
+        OpenApiParameter(
+            name='link',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description='Идентификатор ссылки',
+            required=True
+        )
+    ],
 )
 @api_view(['GET'])
 def get_file(request, link):
